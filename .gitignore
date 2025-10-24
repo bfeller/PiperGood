@@ -16,6 +16,3 @@ build/
 *.swo
 *~
 
-# Voice models - users must add their own
-voice/*.onnx
-voice/*.json
