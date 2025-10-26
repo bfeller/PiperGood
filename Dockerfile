@@ -24,9 +24,9 @@ COPY app /app/app
 # Copy voice models
 COPY voice /app/voice
 
-EXPOSE 8000
+EXPOSE 8001
 
 ENV VOICE_MODEL=/app/voice/edwin.onnx
 ENV VOICE_CONFIG=/app/voice/edwin.onnx.json
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8001"]

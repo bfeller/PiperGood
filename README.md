@@ -71,7 +71,7 @@ DOCKER_BUILDKIT=1 docker build -t pipertts-api .
 Basic usage with default voice paths:
 
 ```bash
-docker run -p 8000:8000 \
+docker run -p 8000:8001 \
   -e API_KEYS="dev-key" \
   --name pipertts-api \
   pipertts-api
@@ -80,7 +80,7 @@ docker run -p 8000:8000 \
 With custom voice model paths (update to match your voice file names):
 
 ```bash
-docker run -p 8000:8000 \
+docker run -p 8000:8001 \
   -e API_KEYS="dev-key" \
   -e VOICE_MODEL=/app/voice/en_US-lessac-medium.onnx \
   -e VOICE_CONFIG=/app/voice/en_US-lessac-medium.onnx.json \
@@ -91,7 +91,7 @@ docker run -p 8000:8000 \
 Or with multiple API keys:
 
 ```bash
-docker run -p 8000:8000 \
+docker run -p 8000:8001 \
   -e API_KEYS="key1,key2,key3" \
   -e VOICE_MODEL=/app/voice/en_US-lessac-medium.onnx \
   -e VOICE_CONFIG=/app/voice/en_US-lessac-medium.onnx.json \
@@ -157,7 +157,7 @@ pip install -r requirements.txt
 export API_KEYS="dev-key"
 
 # Run the server
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload
 ```
 
 ## Voice Models
