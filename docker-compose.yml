@@ -4,5 +4,7 @@ services:
     ports:
       - "8001:8001"
     environment:
-      API_KEYS: "test"
-      LOG_API_KEYS_ON_STARTUP: "true"
+      # Use Portainer / stack env, or a `.env` file beside this compose (not committed).
+      # Do not hardcode secrets here — literals override UI env for this service.
+      API_KEYS: ${API_KEYS:-}
+      LOG_API_KEYS_ON_STARTUP: ${LOG_API_KEYS_ON_STARTUP:-}
