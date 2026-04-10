@@ -4,12 +4,17 @@ from fastapi import Depends, FastAPI, HTTPException, Response, status
 from fastapi.responses import StreamingResponse
 import io
 
-from .auth import require_api_key
+from .auth import maybe_log_api_keys_on_startup, require_api_key
 from .tts import synthesize_speech, VOICE_MODEL
 from .schemas import OpenAISpeechRequest, SpeakRequest, HealthResponse, HelpResponse
 
 
 app = FastAPI(title="PiperTTS API", version="1.0.0")
+
+
+@app.on_event("startup")
+def _log_startup_api_keys() -> None:
+    maybe_log_api_keys_on_startup()
 
 
 def _openai_speed_to_length_scale(speed: float) -> float:

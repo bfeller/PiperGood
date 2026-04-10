@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import logging
 import os
 from typing import Set
 
 from fastapi import Header, HTTPException, status
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def _strip_wrapping_quotes(value: str) -> str:
@@ -30,6 +33,24 @@ def _load_allowed_keys_from_env() -> Set[str]:
         if k:
             keys.append(k)
     return set(keys)
+
+
+def maybe_log_api_keys_on_startup() -> None:
+    """If ``LOG_API_KEYS_ON_STARTUP`` is truthy, print allowed keys to logs (testing only)."""
+    flag = os.getenv("LOG_API_KEYS_ON_STARTUP", "").strip().lower()
+    if flag not in ("1", "true", "yes", "on"):
+        return
+    keys = sorted(_load_allowed_keys_from_env())
+    if not keys:
+        _LOGGER.warning(
+            "LOG_API_KEYS_ON_STARTUP is enabled but API_KEYS/API_KEY is empty — auth is disabled"
+        )
+        return
+    _LOGGER.warning(
+        "LOG_API_KEYS_ON_STARTUP is enabled (insecure): loaded %d API key(s): %s",
+        len(keys),
+        keys,
+    )
 
 
 def _extract_bearer_token(authorization: str | None) -> str | None:

@@ -4,4 +4,5 @@ services:
     ports:
       - "8001:8001"
     environment:
-      API_KEYS: "local-test-key"
+      API_KEYS: "test"
+      LOG_API_KEYS_ON_STARTUP: "true"
