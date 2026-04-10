@@ -11,6 +11,7 @@ WORKDIR /app
 # System dependencies for Piper
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
+    ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python deps with cache mounts for speed

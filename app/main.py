@@ -4,6 +4,7 @@ from fastapi import Depends, FastAPI, HTTPException, Response, status
 from fastapi.responses import StreamingResponse
 import io
 
+from .audio_encode import transcode_openai_format
 from .auth import maybe_log_api_keys_on_startup, require_api_key
 from .tts import synthesize_speech, VOICE_MODEL
 from .schemas import OpenAISpeechRequest, SpeakRequest, HealthResponse, HelpResponse
@@ -28,12 +29,18 @@ def _voice_field_to_speaker(voice: str) -> int:
     return 0
 
 
-def _wav_response(audio_data: bytes, response: Response) -> StreamingResponse:
+def _audio_response(
+    audio_data: bytes,
+    response: Response,
+    *,
+    media_type: str,
+    filename: str,
+) -> StreamingResponse:
     response.headers["Cache-Control"] = "no-store"
     return StreamingResponse(
         io.BytesIO(audio_data),
-        media_type="audio/wav",
-        headers={"Content-Disposition": "attachment; filename=speech.wav"},
+        media_type=media_type,
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
 
 
@@ -82,7 +89,7 @@ def help_endpoint() -> HelpResponse:
                     "input": "Text to speak (required)",
                     "model": "Ignored; any string accepted",
                     "voice": "Ignored unless a numeric string (speaker id for multi-speaker models)",
-                    "response_format": "mp3, opus, aac, flac, wav, pcm (response is always WAV)",
+                    "response_format": "mp3 (default), opus, aac, flac, wav, pcm — mp3 etc. via ffmpeg",
                     "speed": "0.25–4.0, mapped to Piper length_scale (default: 1.0)",
                     "instructions": "Ignored (OpenAI-only)"
                 }
@@ -142,17 +149,24 @@ def help_endpoint() -> HelpResponse:
 def openai_audio_speech(body: OpenAISpeechRequest, response: Response) -> StreamingResponse:
     """
     OpenAI-compatible speech endpoint for tools like Home Assistant openai_tts.
-    Returns WAV; openai_tts detects WAV and converts as needed.
+    ``response_format`` controls the body and Content-Type (e.g. mp3 → audio/mpeg).
+    Home Assistant passes ``-f mp3`` to ffmpeg based on this field, so mp3 must be real MP3.
     """
     try:
-        audio_data = synthesize_speech(
+        wav_data = synthesize_speech(
             text=body.input,
             speaker=_voice_field_to_speaker(body.voice),
             noise_scale=0.667,
             length_scale=_openai_speed_to_length_scale(body.speed),
             noise_w=0.8,
         )
-        return _wav_response(audio_data, response)
+        payload, media_type, filename = transcode_openai_format(wav_data, body.response_format)
+        return _audio_response(payload, response, media_type=media_type, filename=filename)
+    except RuntimeError as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(e),
+        )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -174,7 +188,12 @@ def speak(body: SpeakRequest, response: Response) -> StreamingResponse:
             length_scale=body.length_scale or 1.0,
             noise_w=body.noise_w or 0.8,
         )
-        return _wav_response(audio_data, response)
+        return _audio_response(
+            audio_data,
+            response,
+            media_type="audio/wav",
+            filename="speech.wav",
+        )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

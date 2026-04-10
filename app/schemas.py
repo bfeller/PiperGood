@@ -38,7 +38,10 @@ class OpenAISpeechRequest(BaseModel):
     )
     response_format: Literal["mp3", "opus", "aac", "flac", "wav", "pcm"] = Field(
         default="mp3",
-        description="Requested format; Piper always returns WAV (openai_tts converts WAV to MP3).",
+        description=(
+            "Output format. mp3/opus/aac/flac/pcm are produced via ffmpeg from Piper WAV; "
+            "wav returns raw WAV (best if the client treats the body as WAV)."
+        ),
     )
     speed: float = Field(default=1.0, ge=0.25, le=4.0, description="OpenAI speed; mapped to Piper length_scale.")
     instructions: Optional[str] = Field(
