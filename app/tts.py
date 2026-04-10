@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Optional
 
 from piper import PiperVoice
+from piper.config import SynthesisConfig
 
 
 VOICE_MODEL = os.getenv("VOICE_MODEL", "/app/voice/edwin.onnx")
@@ -43,13 +44,18 @@ def synthesize_speech(
     Returns WAV audio data as bytes.
     """
     voice = get_piper_voice()
-    
-    # Create an in-memory WAV file
+
+    syn_config = SynthesisConfig(
+        speaker_id=speaker,
+        length_scale=length_scale,
+        noise_scale=noise_scale,
+        noise_w_scale=noise_w,
+    )
+
     wav_buffer = io.BytesIO()
-    
+
     with wave.open(wav_buffer, "wb") as wav_file:
-        # Synthesize audio using synthesize_wav method
-        voice.synthesize_wav(text, wav_file)
+        voice.synthesize_wav(text, wav_file, syn_config=syn_config)
     
     # Get the WAV data
     wav_buffer.seek(0)

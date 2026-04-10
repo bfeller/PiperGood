@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from typing import Optional
+from typing import Literal, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class SpeakRequest(BaseModel):
@@ -23,3 +23,25 @@ class HelpResponse(BaseModel):
     endpoints: dict
     authentication: str
     example_usage: dict
+
+
+class OpenAISpeechRequest(BaseModel):
+    """Subset of OpenAI ``POST /v1/audio/speech`` for Home Assistant openai_tts compatibility."""
+
+    model_config = ConfigDict(extra="ignore")
+
+    model: str = Field(default="tts-1", description="Ignored; Piper uses the configured voice model.")
+    input: str = Field(..., min_length=1, description="Text to synthesize.")
+    voice: str = Field(
+        default="alloy",
+        description="Ignored unless it is a non-negative integer string (multi-speaker Piper voices).",
+    )
+    response_format: Literal["mp3", "opus", "aac", "flac", "wav", "pcm"] = Field(
+        default="mp3",
+        description="Requested format; Piper always returns WAV (openai_tts converts WAV to MP3).",
+    )
+    speed: float = Field(default=1.0, ge=0.25, le=4.0, description="OpenAI speed; mapped to Piper length_scale.")
+    instructions: Optional[str] = Field(
+        default=None,
+        description="OpenAI-only; ignored for Piper.",
+    )

@@ -1,0 +1,7 @@
+services:
+  pipertts:
+    build: .
+    ports:
+      - "8001:8001"
+    environment:
+      API_KEYS: "local-test-key"

@@ -21,8 +21,29 @@ def _load_allowed_keys_from_env() -> Set[str]:
 ALLOWED_KEYS = _load_allowed_keys_from_env()
 
 
-def require_api_key(x_api_key: str | None = Header(default=None)) -> None:
-    if not x_api_key or x_api_key not in ALLOWED_KEYS:
+def _extract_bearer_token(authorization: str | None) -> str | None:
+    if not authorization:
+        return None
+    parts = authorization.split(None, 1)
+    if len(parts) != 2 or parts[0].lower() != "bearer":
+        return None
+    token = parts[1].strip()
+    return token or None
+
+
+def require_api_key(
+    authorization: str | None = Header(default=None),
+    x_api_key: str | None = Header(default=None),
+) -> None:
+    """Accept API key via ``x-api-key`` or ``Authorization: Bearer`` (OpenAI-style)."""
+    if not ALLOWED_KEYS:
+        return
+    token: str | None = None
+    if x_api_key:
+        token = x_api_key.strip()
+    if not token:
+        token = _extract_bearer_token(authorization)
+    if not token or token not in ALLOWED_KEYS:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Unauthorized",
