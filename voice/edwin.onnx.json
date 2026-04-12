@@ -1,14 +1,14 @@
 {
-    "dataset": "edwin_dojo",
+    "dataset": "work",
     "audio": {
         "sample_rate": 22050,
-        "quality": "training_folder"
+        "quality": "preprocessed"
     },
     "espeak": {
-        "voice": "en"
+        "voice": "en-gb-x-rp"
     },
     "language": {
-        "code": "en"
+        "code": "en-gb-x-rp"
     },
     "inference": {
         "noise_scale": 0.667,
@@ -446,6 +446,12 @@
         ],
         "̃": [
             141
+        ],
+        "̊": [
+            158
+        ],
+        "̝": [
+            157
         ],
         "̧": [
             140
