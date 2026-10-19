@@ -16,3 +16,7 @@ build/
 *.swo
 *~
 
+# Local virtualenv (contains OS symlinks — Hostinger/deploy clones reject them)
+venv/
+.venv/
+
