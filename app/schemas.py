@@ -44,6 +44,10 @@ class OpenAISpeechRequest(BaseModel):
         ),
     )
     speed: float = Field(default=1.0, ge=0.25, le=4.0, description="OpenAI speed; mapped to Piper length_scale.")
+    stream_format: Optional[Literal["audio", "sse"]] = Field(
+        default=None,
+        description="OpenAI streaming mode hint; ignored — streamable formats always use chunked audio transfer.",
+    )
     instructions: Optional[str] = Field(
         default=None,
         description="OpenAI-only; ignored for Piper.",

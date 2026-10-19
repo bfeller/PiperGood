@@ -5,11 +5,13 @@ FastAPI service for text-to-speech synthesis using PiperTTS.
 ## Features
 
 - 🎙️ High-quality text-to-speech synthesis using PiperTTS
-- 🔐 API key authentication
+- 🔐 API key authentication (`x-api-key` or `Authorization: Bearer`)
 - 🚀 FastAPI with async support
 - 🐳 Fully containerized with Docker
 - 📝 Simple API with sensible defaults
 - 🔧 Configurable speech parameters
+- 📡 OpenAI-compatible `POST /v1/audio/speech` (for Home Assistant `openai_tts`)
+- ⏩ Progressive streaming for `mp3` / `opus` / `aac` / `pcm` (one Piper sentence → encode → flush) so clients can start playback before the full reply finishes
 
 ## Prerequisites
 
@@ -36,9 +38,14 @@ The voice files are gitignored to keep the repository lightweight and allow user
 
 - `GET /health` → `{ status, model, voice }`
 - `GET /help` → Complete API documentation and usage examples
-- `POST /speak` (requires `x-api-key`)
+- `POST /speak` (requires auth when `API_KEYS` is set)
   - Body: `{ "text": string, "speaker"?: int, "noise_scale"?: float, "length_scale"?: float, "noise_w"?: float }`
   - Response: WAV audio file
+- `POST /v1/audio/speech` (OpenAI-compatible; use with HA openai_tts custom endpoint)
+  - Body: `{ "input": string, "model"?: string, "voice"?: string, "response_format"?: "mp3"|"opus"|"aac"|"flac"|"wav"|"pcm", "speed"?: number }`
+  - Default `response_format` is **`mp3`** (real MPEG via ffmpeg — required for HA Assist streaming)
+  - `mp3`/`opus`/`aac`/`pcm` responses are **chunk-transfer streamed** (sentence-by-sentence)
+  - Auth: `Authorization: Bearer <key>` or `x-api-key`
 
 ## Authentication
 
